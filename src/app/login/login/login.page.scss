@@ -1,0 +1,32 @@
+@import "../../../theme/main.scss";
+
+@import "../../../theme/util.scss";
+
+
+ion-item {
+    --background: none;
+    opacity:1;
+  }
+
+  a:link {
+    color: white;
+    font-weight: 400;
+    font-family: Poppins-Regular;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .btn{
+    width: 100%;
+    background: none;
+    border: 2px solid black;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 8px 0;
+   // margin: 12px;
+  }
+
+  .show {
+    display: inline !important;
+    }

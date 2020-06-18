@@ -1,0 +1,103 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+        <ion-menu-button auto-hide="false"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>My Details</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+
+<ion-content [fullscreen]="true"  class="background">
+
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">My Details</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+
+  <ion-grid>
+    <ion-row class="center">
+      
+          <img  [src]="photo"> 
+
+     
+    </ion-row>
+    <ion-row class="center">
+          <button class="btn" (click)="takePicture()">
+            <ion-icon name="camera"></ion-icon>
+          </button>
+    </ion-row>
+    <ion-row></ion-row>
+    <ion-row class="center">
+      <ion-col size="4">
+        <ion-item >
+          <ion-label floating>
+            <ion-icon name="person" item-start class="text-primary" >            
+            </ion-icon>
+          </ion-label>          
+            <ion-input background ="white" type="text"  [(ngModel)]="user_name" placeholder="Name" #userName required></ion-input>       
+        </ion-item> 
+      </ion-col>
+      <ion-col size="4">
+        <ion-item >
+          <ion-label floating>
+            <ion-icon name="person" item-start class="text-primary" >            
+            </ion-icon>
+          </ion-label>          
+            <ion-input background ="white" type="text"  [(ngModel)]="user_lastName"placeholder="Lastname" #lastName required></ion-input>       
+        </ion-item> 
+      </ion-col>
+    </ion-row>
+    <ion-row class="center">
+      <ion-col size="4">
+        <ion-item >
+          <ion-label floating>
+            <ion-icon name="mail" item-start class="text-primary" >            
+            </ion-icon>
+          </ion-label>          
+            <ion-input background ="white" type="email"  [(ngModel)]="user_email" placeholder="Email" #email required></ion-input>       
+        </ion-item> 
+      </ion-col>
+      <ion-col size="4">
+        <ion-item >
+          <ion-label floating>
+            <ion-icon name="call" item-start class="text-primary" >            
+            </ion-icon>
+          </ion-label>          
+            <ion-input background ="white" type="email" [(ngModel)]="userNumber"  placeholder="Phone Number 0123456789" #phone required></ion-input>       
+        </ion-item> 
+      </ion-col>
+    </ion-row>
+    <ion-row *ngIf="!verifiedTrainer; else verify" class="center">
+      <ion-col size="4">
+        <ion-item class = "ion-item-1" button lines="none" >
+          <ion-label class = "ion-item-1" (click) = "presentAlertPrompt()">
+              I am a Trainer (Click Here!)
+          </ion-label>
+        </ion-item>
+      </ion-col>
+      <ion-col size="4"> </ion-col>
+    </ion-row>
+    <ng-template #verify>
+      <ion-row class="center">
+        <ion-col size="4">
+          <ion-item class = "ion-item-1" lines="none" >
+            <ion-label class = "ion-item-1" >
+                Hooray! You're a Verified Trainer
+            </ion-label>
+          </ion-item>
+        </ion-col>
+        <ion-col size="4"> </ion-col>
+      </ion-row>
+    </ng-template>
+  </ion-grid>  
+
+  
+  <button  class="btn2" (click)="updateInformation(userName.value, lastName.value, email.value, phone.value)" >
+    <ion-icon name="file-tray-stacked"></ion-icon>
+    Save Info
+  </button>
+  
+</ion-content>

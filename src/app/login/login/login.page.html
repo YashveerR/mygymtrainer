@@ -1,0 +1,79 @@
+
+<ion-content  padding class="background" >
+  <div class="container-login100" style="background-image: url('../../../assets/dumbbell.jpg');"> 
+    <div class="login-box">     
+      <form >
+        <span class="login100-form-title p-b-20">
+          Login
+        </span>
+        <div class="textbox">
+        <ion-item >
+          <ion-label floating>
+            <ion-icon  name="mail" item-start class="text-primary" ></ion-icon>
+          </ion-label>          
+            <ion-input  type="email" placeholder="Email" #userName required></ion-input>       
+        </ion-item>
+      </div>
+        <ion-item class="textbox">
+          <ion-label floating> 
+            <ion-icon name="key" item-start class="text-primary"></ion-icon>          
+          </ion-label>
+          <ion-input  type="password" placeholder="Password" #userPassword required></ion-input>
+        </ion-item>     
+        
+        <div class="p-t-8 p-b-31 link">
+          <a href="/forgotpass">
+            Forgot password?
+          </a>
+              
+          <a class="p-l-45" href="/register">
+            Sign Up Here!
+          </a>
+
+        </div>     
+
+            <button class="btn" (click)="authService.SignIn(userName.value,userPassword.value )">
+              <ion-icon name="log-in"></ion-icon>
+              Login
+            </button>
+
+
+        <div class="txt1 p-t-54 p-b-20">
+          <span>
+            Or Sign In Using
+          </span>
+        </div>
+
+        <ion-grid>
+          <ion-row>
+            <ion-col size ="2" offset="3">
+              <ion-fab>
+                <ion-fab-button color = "primary" size="small" (click)="authService.FacebookAuth()">
+                  <ion-icon  name="logo-facebook"></ion-icon>
+                </ion-fab-button>
+                
+              </ion-fab>
+            </ion-col>
+            <ion-col size ="2">
+              <ion-fab>
+              <ion-fab-button color = "secondary" size="small" (click)="authService.TwitterAuth()">
+                <ion-icon  name="logo-twitter"></ion-icon>
+              </ion-fab-button>
+            </ion-fab>
+            </ion-col>
+            <ion-col size ="2">
+              <ion-fab>
+                <ion-fab-button color = "danger" size="small" (click)="authService.GoogleAuth()">
+                  <ion-icon  name="logo-google"></ion-icon>
+                </ion-fab-button>
+              </ion-fab>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </form>
+   
+    </div>
+  
+  </div>
+
+</ion-content>

@@ -1,0 +1,13 @@
+{
+  "appId": "com.mygymapp.mygymscheduler",
+  "appName": "mygymscheduler",
+  "bundledWebRuntime": false,
+  "npmClient": "npm",
+  "webDir": "www",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  },
+  "cordova": {}
+}
