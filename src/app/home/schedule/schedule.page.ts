@@ -3,6 +3,7 @@ import { CalendarComponent } from 'ionic2-calendar/calendar';
 import { AlertController } from '@ionic/angular';
 import { formatDate } from '@angular/common';
 import {CrudService} from '../../shared/services/crud.service'
+import { firestore } from 'firebase/app';
 
 @Component({
   selector: 'app-schedule',
@@ -11,7 +12,6 @@ import {CrudService} from '../../shared/services/crud.service'
 })
 export class SchedulePage implements OnInit {
   
-  items = ["Ram","gopi", "dravid"];
   itemz:any;
 
   public trainerList:any = [];
@@ -19,6 +19,12 @@ export class SchedulePage implements OnInit {
   collapseCard:any=true;
 
   isItemAvailable = false; 
+
+  temp;
+  selectedDay:number[] = new Array(0);
+  selectedMonth:number[] = new Array(0);
+  calculatedHrs:number[] = new Array(0);
+  calculatedMins:number[] = new Array(0);
 
   event = {
     title: '',
@@ -32,6 +38,14 @@ export class SchedulePage implements OnInit {
   eventSource = [];
   viewTitle;
  
+  serverDay:any = [];
+  serverMonth:any = [];
+  serverHour:any = [];
+  serverMinute:any = [];
+
+  startTimes:any = [];
+  endTimes: any = [];
+
   calendar = {
     mode: 'month',
     currentDate: new Date(),
@@ -129,10 +143,6 @@ export class SchedulePage implements OnInit {
     this.event.endTime = (selected.toISOString());
   }
 
-  initializeItems(){
-    this.items = ["Ram","gopi", "dravid"];
-    }
-
     getItems(ev: any) {
       // Reset items back to all of the items
            
@@ -183,11 +193,59 @@ export class SchedulePage implements OnInit {
 
     async getTrainerSchedule()
     {
+      var sDate = [];
+      var sMonth = [];
+      var sHour = [];
+      var sMinute = [];
+      var sHourEnd = [];
+      var sMinuteEnd = [];
+
       this.crud.readTrainerSchedule(this.itemz).subscribe(function(data){
         data.forEach(function(doc){
-          console.log(doc.id, doc.data()["startTime"])
+          console.log(doc.id, doc.data(), doc.data()["title"])
+          const timstamp = doc.data().startTime && doc.data().startTime.toDate();
+          console.log(timstamp);
+          const endTimeStamp = doc.data().endTime && doc.data().endTime.toDate();
+
+          sDate.push((doc.data().startTime && doc.data().startTime.toDate().getDate()));
+          sMonth.push((doc.data().startTime && doc.data().startTime.toDate().getMonth()) + 1);
+          sHour.push((doc.data().startTime && doc.data().startTime.toDate().getHours()));
+          sMinute.push((doc.data().startTime && doc.data().startTime.toDate().getMinutes()));
+          sHourEnd.push((doc.data().startTime && doc.data().endTime.toDate().getHours()));
+          sMinuteEnd.push((doc.data().startTime && doc.data().endTime.toDate().getMinutes()));
         });
       });
+      console.log(sDate, sMonth, sHour, sMinute);
     }
 
+    markDisabled = (date: Date) => {
+      var current = new Date();
+      return date < current;
+    };
+
+    calculateHours(serverDate, serverMonth, startTimeHr, startTimeMin, endTimeHr, endTimeMin)
+    {
+      serverMonth.forEach((element, index) => {
+        if (element == this.selectedMonth) {
+          if (serverDate[index] == this.selectedDay) {
+            //perform the logic to remove times from this day
+            this.calculatedMins[0] = 60 - (endTimeMin - startTimeMin);
+            this.calculatedHrs[0] = endTimeHr - startTimeHr;
+          }
+        }
+        
+      });
+    }
+    
+    changeClick(event)
+    {
+      var we;
+      console.log("change. ........",event.detail)
+
+      we = new Date(this.temp);
+      console.log((we));
+      this.selectedDay.push(we.getDate());
+      this.selectedMonth.push(we.getMonth() + 1);
+      console.log(this.selectedMonth);
+    }
 }

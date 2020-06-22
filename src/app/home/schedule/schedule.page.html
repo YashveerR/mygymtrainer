@@ -41,8 +41,16 @@
               <ion-input type="text" placeholder="What Workout today?" [(ngModel)]="event.desc"></ion-input>
             </ion-item>
             <ion-item>
+              <ion-label>Date</ion-label>
+              <ion-datetime displayFormat="MM/DD/YYYY" pickerFormat="MMM D" [(ngModel)]="temp" (ionChange)="changeClick($event)" [min]="minDate"></ion-datetime>
+            </ion-item>
+            
+            <ion-item>
               <ion-label>Start</ion-label>
-              <ion-datetime displayFormat="MM/DD/YYYY HH:mm" pickerFormat="MMM D:HH:mm" [(ngModel)]="event.startTime" [min]="minDate"></ion-datetime>
+              <ion-datetime 
+                [monthValues] = "selectedMonth"
+                [dayValues] = "selectedDay"
+                displayFormat="MM/DD/YYYY HH:mm" pickerFormat="MMM D:HH:mm" [(ngModel)]="event.startTime"  [min]="minDate"></ion-datetime>
             </ion-item>
             <ion-item>
               <ion-label>End</ion-label>
@@ -75,10 +83,9 @@
         startHour="6"
         endHour="20"
         step="30"
-        startingDayWeek="1">
+        startingDayWeek="1"
+        [markDisabled]="markDisabled">
         </calendar>
-
-
     </ion-content>  
 
   </ion-content>
