@@ -21,6 +21,11 @@ export class CrudService {
     this.firestore.collection('trainer').doc(trainerId).collection('trainerSchedule').add(data);    
   }
 
+  createUserAppointment(userName, data)
+  {
+    this.firestore.collection('userSchedule').doc(userName).collection('userSched').add(data);
+  }
+
   readUserData(doc_id)
   {
       return this.firestore.collection('users').doc(doc_id).get()
@@ -33,7 +38,20 @@ export class CrudService {
 
   readTrainerSchedule(trainerId)
   {
-    return this.firestore.collection('trainer').doc(trainerId).collection('trainerSchedule').get();
+    var datumObject = new Date();
+    return this.firestore.collection('trainer').doc(trainerId).collection('trainerSchedule', ref =>
+    ref.where('startTime', '>', datumObject ).orderBy('startTime')).get();
+  }
+
+  readUserSchedule(userId) 
+  {
+    var datum = Math.floor(Date.now() / 1000);
+    var datumObject = new Date();
+    console.log(datum, datumObject);
+    
+    return this.firestore.collection('userSchedule').doc('Yashveer Ramparsad').collection('userSched', ref =>
+      ref.where('startTime', '>', datumObject).orderBy('startTime')).get();       
+      
   }
 
   updateVerification(uid)

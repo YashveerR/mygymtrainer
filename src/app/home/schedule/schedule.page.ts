@@ -12,37 +12,49 @@ import { firestore } from 'firebase/app';
 })
 export class SchedulePage implements OnInit {
   
+  
+
   itemz:any;
+  userdata: any;
 
   public trainerList:any = [];
 
   collapseCard:any=true;
+  collapseInfoCard:any=true;
+
+  dispScheduleCard:any = false;
+
 
   isItemAvailable = false; 
 
   temp;
-  selectedDay:number[] = new Array(0);
-  selectedMonth:number[] = new Array(0);
-  calculatedHrs:number[] = new Array(0);
-  calculatedMins:number[] = new Array(0);
+  selectedDay:number;
+  selectedMonth:number;
+
 
   event = {
     title: '',
     desc: '',
     startTime: '',
     endTime: '',
-    allDay: false
+    allDay: false,
+    clientId:''
   };
+
+ 
+  
   minDate = new Date().toISOString();
  
   eventSource = [];
+  userItem = [];
+  userTimeStart = [];
+  userTimeEnd = [];
+  userTrainer = [];
+
   viewTitle;
  
-  serverDay:any = [];
   serverMonth:any = [];
-  serverHour:any = [];
-  serverMinute:any = [];
-
+  serverDay:any = [];
   startTimes:any = [];
   endTimes: any = [];
 
@@ -61,6 +73,9 @@ export class SchedulePage implements OnInit {
   ngOnInit() {
     this.resetEvent();
     this.getTrainers();
+    this.userdata = JSON.parse(localStorage.getItem('user'));
+    this.getUserSchedule();
+    this.dispScheduleCard = false;
   }
   resetEvent() {
     this.event = {
@@ -68,8 +83,14 @@ export class SchedulePage implements OnInit {
       desc: '',
       startTime: new Date().toISOString(),
       endTime: new Date().toISOString(),
-      allDay: false
+      allDay: false,
+      clientId:''
     };
+
+    this.itemz = '';
+    this.dispScheduleCard = false;
+    this.temp = new Date().toISOString();
+
   }
 
   addEvent() {
@@ -78,7 +99,8 @@ export class SchedulePage implements OnInit {
       startTime:  new Date(this.event.startTime),
       endTime: new Date(this.event.endTime),
       allDay: this.event.allDay,
-      desc: this.event.desc
+      desc: this.event.desc,
+      clientId: this.userdata.displayName
     }
  
     if (eventCopy.allDay) {
@@ -90,7 +112,6 @@ export class SchedulePage implements OnInit {
     }
  
     this.eventSource.push(eventCopy);
-    this.myCal.loadEvents();
     this.postEvent(eventCopy);
     this.resetEvent();
   }
@@ -189,63 +210,66 @@ export class SchedulePage implements OnInit {
     postEvent(event)
     {
       this.crud.createAppointment(this.itemz,event);
+      this.crud.createUserAppointment(this.itemz,event);
     }
 
     async getTrainerSchedule()
     {
       var sDate = [];
-      var sMonth = [];
-      var sHour = [];
-      var sMinute = [];
-      var sHourEnd = [];
-      var sMinuteEnd = [];
+      var eDate = [];
+      var startDay = [];
+      var sMonth =[];
 
       this.crud.readTrainerSchedule(this.itemz).subscribe(function(data){
         data.forEach(function(doc){
           console.log(doc.id, doc.data(), doc.data()["title"])
-          const timstamp = doc.data().startTime && doc.data().startTime.toDate();
+          const timstamp = doc.data().startTime && doc.data().startTime.toDate().toLocaleString();
           console.log(timstamp);
-          const endTimeStamp = doc.data().endTime && doc.data().endTime.toDate();
-
-          sDate.push((doc.data().startTime && doc.data().startTime.toDate().getDate()));
-          sMonth.push((doc.data().startTime && doc.data().startTime.toDate().getMonth()) + 1);
-          sHour.push((doc.data().startTime && doc.data().startTime.toDate().getHours()));
-          sMinute.push((doc.data().startTime && doc.data().startTime.toDate().getMinutes()));
-          sHourEnd.push((doc.data().startTime && doc.data().endTime.toDate().getHours()));
-          sMinuteEnd.push((doc.data().startTime && doc.data().endTime.toDate().getMinutes()));
+          const endTimeStamp = doc.data().endTime && doc.data().endTime.toDate().toLocaleString();
+          const sDay = doc.data().endTime && doc.data().endTime.toDate().getDate();
+          const tempMonth = doc.data().endTime && doc.data().endTime.toDate().getMonth();
+          console.log((doc.data().startTime && doc.data().startTime.toDate().toLocaleString()));
+          sDate.push(timstamp);
+          eDate.push(endTimeStamp);
+          startDay.push(sDay);
+          sMonth.push(tempMonth);
         });
       });
-      console.log(sDate, sMonth, sHour, sMinute);
+      this.serverDay = startDay;
+      this.startTimes = sDate;
+      this.serverMonth = sMonth;
+      this.endTimes = eDate
+
     }
 
-    markDisabled = (date: Date) => {
-      var current = new Date();
-      return date < current;
-    };
-
-    calculateHours(serverDate, serverMonth, startTimeHr, startTimeMin, endTimeHr, endTimeMin)
+    getUserSchedule()
     {
-      serverMonth.forEach((element, index) => {
-        if (element == this.selectedMonth) {
-          if (serverDate[index] == this.selectedDay) {
-            //perform the logic to remove times from this day
-            this.calculatedMins[0] = 60 - (endTimeMin - startTimeMin);
-            this.calculatedHrs[0] = endTimeHr - startTimeHr;
-          }
-        }
-        
+      var userEvents = []
+      var userStrt = [];
+      var userE = [];
+      var userTr = [];
+      console.log("trying to get list of itemsz");
+      this.crud.readUserSchedule(this.userdata).subscribe(function(data){
+        data.forEach(function(doc){          
+          userEvents.push(doc.data().desc);
+          userStrt.push(doc.data().startTime && doc.data().startTime.toDate().toLocaleString());
+          userE.push(doc.data().endTime &&  doc.data().endTime.toDate().toLocaleString());
+          userTr.push(doc.data().title);
+        });
       });
+      this.userItem = userEvents;
+      this.userTimeStart = userStrt;
+      this.userTimeEnd = userE;
+      this.userTrainer = userTr;
     }
-    
+   
     changeClick(event)
     {
       var we;
-      console.log("change. ........",event.detail)
-
       we = new Date(this.temp);
-      console.log((we));
-      this.selectedDay.push(we.getDate());
-      this.selectedMonth.push(we.getMonth() + 1);
-      console.log(this.selectedMonth);
+      this.selectedDay = (we.getDate());
+      this.selectedMonth = (we.getMonth() + 1);      
+      this.dispScheduleCard = true;
+
     }
 }
