@@ -1,21 +1,26 @@
-import { Component, OnInit , ViewChild, Inject, LOCALE_ID} from '@angular/core';
+import { Component, OnInit , ViewChild, Inject, LOCALE_ID, OnDestroy, HostListener } from '@angular/core';
 import { CalendarComponent } from 'ionic2-calendar/calendar';
 import { AlertController } from '@ionic/angular';
 import { formatDate } from '@angular/common';
 import {CrudService} from '../../shared/services/crud.service'
-import { firestore } from 'firebase/app';
+import {MenuController} from "@ionic/angular"
+import { AuthService } from 'src/app/shared/auth.service';
 
 @Component({
   selector: 'app-schedule',
   templateUrl: './schedule.page.html',
   styleUrls: ['./schedule.page.scss'],
 })
-export class SchedulePage implements OnInit {
+export class SchedulePage implements OnInit , OnDestroy{
   
-  
+  obs$ :any = [];
 
+  userLoggedIn: any = false;
   itemz:any;
   userdata: any;
+
+  adminUser:any;
+  loggedInUser:any;
 
   public trainerList:any = [];
 
@@ -57,6 +62,8 @@ export class SchedulePage implements OnInit {
   serverDay:any = [];
   startTimes:any = [];
   endTimes: any = [];
+  clientTask: any = [];
+  clientName: any = [];
 
   calendar = {
     mode: 'month',
@@ -65,17 +72,69 @@ export class SchedulePage implements OnInit {
  
   @ViewChild(CalendarComponent) myCal: CalendarComponent;
 
-  constructor(private alertCtrl: AlertController, 
+  constructor(
+    private alertCtrl: AlertController, 
     @Inject(LOCALE_ID) private locale: string,
-    private crud:CrudService
-  ) { }
+    private crud:CrudService,
+    private auth:AuthService,
+    public menuCtrl: MenuController
+  ) { 
+
+    this.obs$.push( auth.checkUserLoggedIn().then(value => {
+      this.userLoggedIn = value;
+      this.userdata = JSON.parse(localStorage.getItem('user'));
+    }));    
+  }
 
   ngOnInit() {
-    this.resetEvent();
-    this.getTrainers();
-    this.userdata = JSON.parse(localStorage.getItem('user'));
-    this.getUserSchedule();
-    this.dispScheduleCard = false;
+    //need a process here to resolve on a promise only once the user is fully logged in
+    try {
+      this.obs$.push (this.auth.checkUserLoggedIn().then(value =>{
+        if (value !== undefined) {
+          console.log("ngOnint")
+          this.userdata = value;
+          this.setUserMode();
+          this.resetEvent();
+          this.getTrainers();              
+          this.getUserSchedule();
+          this.dispScheduleCard = false;          
+        }
+        else{
+          console.log("somethings up here on init")
+        }
+      }));
+    }
+    catch (Error)
+    {
+      console.log("promise", Error.message);
+    }    
+  }
+
+  @HostListener('window:beforeunload')
+  async ngOnDestroy(){
+    console.log("ngOndestroy")
+  }
+
+  ionViewWillEnter() {
+    this.menuCtrl.enable(true);
+   }
+
+   ionViewDidEnter()
+   {
+    this.menuCtrl.enable(true);
+   }
+  async setUserMode()
+  {
+    await this.crud.readUserData(this.userdata).subscribe(data =>{
+      this.adminUser = data.data().verifiedTrainer;
+      if (this.adminUser == true)
+      {
+        this.itemz = data.data().displayName;
+        console.log("admin user ",this.adminUser);
+        this.getTrainerSchedule();
+      }
+      this.loggedInUser = data.data().displayName;
+    });
   }
   resetEvent() {
     this.event = {
@@ -100,7 +159,7 @@ export class SchedulePage implements OnInit {
       endTime: new Date(this.event.endTime),
       allDay: this.event.allDay,
       desc: this.event.desc,
-      clientId: this.userdata.displayName
+      clientId: this.loggedInUser
     }
  
     if (eventCopy.allDay) {
@@ -114,6 +173,8 @@ export class SchedulePage implements OnInit {
     this.eventSource.push(eventCopy);
     this.postEvent(eventCopy);
     this.resetEvent();
+    this.getUserSchedule();
+    this.serverDay = [];
   }
 
   next() {
@@ -185,12 +246,23 @@ export class SchedulePage implements OnInit {
       this.itemz = selected;
       this.event.title = selected;
       this.isItemAvailable = false;
+      console.log("pringint the trainer chosen",this.itemz);
       this.getTrainerSchedule();
     }
 
     doRefresh(events)
     {
+      this.getUserSchedule();
+      this.getTrainerSchedule();
       
+      this.serverDay = [];
+      
+      setTimeout(() => {     
+        //this.calculate();     
+        //this.data_here = true;      
+        console.log('Async operation has ended');
+        events.target.complete();
+      }, 2000);
     }
 
     async getTrainers()
@@ -210,7 +282,7 @@ export class SchedulePage implements OnInit {
     postEvent(event)
     {
       this.crud.createAppointment(this.itemz,event);
-      this.crud.createUserAppointment(this.itemz,event);
+      this.crud.createUserAppointment(this.loggedInUser,event);
     }
 
     async getTrainerSchedule()
@@ -219,13 +291,15 @@ export class SchedulePage implements OnInit {
       var eDate = [];
       var startDay = [];
       var sMonth =[];
+      var sItem = [];
+      var sTrainee = [];
 
       this.crud.readTrainerSchedule(this.itemz).subscribe(function(data){
         data.forEach(function(doc){
           console.log(doc.id, doc.data(), doc.data()["title"])
           const timstamp = doc.data().startTime && doc.data().startTime.toDate().toLocaleString();
-          console.log(timstamp);
-          const endTimeStamp = doc.data().endTime && doc.data().endTime.toDate().toLocaleString();
+          console.log(timstamp, doc.data().startTime && doc.data().startTime.toDate().toLocaleTimeString());
+          const endTimeStamp = doc.data().endTime && doc.data().endTime.toDate().toLocaleTimeString();
           const sDay = doc.data().endTime && doc.data().endTime.toDate().getDate();
           const tempMonth = doc.data().endTime && doc.data().endTime.toDate().getMonth();
           console.log((doc.data().startTime && doc.data().startTime.toDate().toLocaleString()));
@@ -233,12 +307,16 @@ export class SchedulePage implements OnInit {
           eDate.push(endTimeStamp);
           startDay.push(sDay);
           sMonth.push(tempMonth);
+          sItem.push(doc.data().desc);
+          sTrainee.push(doc.data().clientId);
         });
       });
       this.serverDay = startDay;
       this.startTimes = sDate;
       this.serverMonth = sMonth;
       this.endTimes = eDate
+      this.clientName = sTrainee;
+      this.clientTask = sItem;
 
     }
 
@@ -249,11 +327,11 @@ export class SchedulePage implements OnInit {
       var userE = [];
       var userTr = [];
       console.log("trying to get list of itemsz");
-      this.crud.readUserSchedule(this.userdata).subscribe(function(data){
+      this.crud.readUserSchedule(this.userdata["uid"]).subscribe(function(data){
         data.forEach(function(doc){          
           userEvents.push(doc.data().desc);
           userStrt.push(doc.data().startTime && doc.data().startTime.toDate().toLocaleString());
-          userE.push(doc.data().endTime &&  doc.data().endTime.toDate().toLocaleString());
+          userE.push(doc.data().endTime &&  doc.data().endTime.toDate().toLocaleTimeString());
           userTr.push(doc.data().title);
         });
       });

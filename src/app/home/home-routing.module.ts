@@ -14,6 +14,10 @@ const routes: Routes = [
   {
     path: 'mydetails',
     loadChildren: () => import('./mydetails/mydetails.module').then( m => m.MydetailsPageModule)
+  },
+  {
+    path: 'logout',
+    loadChildren: () => import('./logout/logout.module').then( m => m.LogoutPageModule)
   }
 ];
 

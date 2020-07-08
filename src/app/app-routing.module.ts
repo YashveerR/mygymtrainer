@@ -32,6 +32,10 @@ const routes: Routes = [
     path: 'home/mydetails',
     loadChildren: () => import('./home/mydetails/mydetails.module').then( m => m.MydetailsPageModule) , canActivate: [AuthGuard]
   },
+  {
+    path: 'home/logout',
+    loadChildren: () => import('./home/logout/logout.module').then( m => m.LogoutPageModule) 
+  }
 ];
 
 @NgModule({

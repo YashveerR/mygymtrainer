@@ -11,7 +11,48 @@
         "source": "**",
         "destination": "/index.html"
       }
-    ]
+    ],    
+    "headers": [ {
+      "source": "**/*.@(eot|otf|ttf|ttc|woff|font.css)",
+      "headers": [ {
+        "key": "Cache-Control",
+        "value":"max-age=31536000"
+      } ]
+    }
+    , {
+      "source": "**/*.@(jpg|jpeg|gif|png)",
+      "headers": [ {
+        "key": "Cache-Control",
+        "value": "max-age=31536000"
+      } ]
+    },
+    {
+      "source": "**/*.@(css|js)",
+      "headers": [ {
+        "key": "Cache-Control",
+        "value": "max-age=31536000"
+      } ]
+    },
+    {
+      "source": "/build/app/**",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000"
+        }
+      ]
+    },
+    {
+      "source": "ngsw-worker.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    }
+  ]
+
   },
   "database": {
     "rules": "database.rules.json"

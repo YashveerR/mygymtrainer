@@ -9,26 +9,24 @@
 
     <ion-content [fullscreen]="true"  class="background">
       <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)" pullFactor="0.5" pullMin="100" pullMax="200">
-        <ion-refresher-content></ion-refresher-content>
+        <ion-refresher-content 
+        pullingIcon="arrow-dropdown"
+        pullingText="Pull to refresh"
+        refreshingSpinner="crescent"
+        refreshingText="Refreshing...">          
+        </ion-refresher-content>
       </ion-refresher>
-
-      <ion-header collapse="condense">
-        <ion-toolbar>
-          <ion-title size="large">Inventory</ion-title>
-        </ion-toolbar>
-      </ion-header>
-
 
       <ion-content> 
       <!-- Card for adding a new event -->
-          <ion-card >
+          <ion-card *ngIf="!adminUser">
             <ion-card-header  tappable (click)="collapseCard = !collapseCard">
               <ion-card-title>+ New Event</ion-card-title>
             </ion-card-header>
             <ion-card-content *ngIf="!collapseCard">
 
               <ion-item>
-                <ion-input type="text" (ionInput)= "getItems($event)" placeholder="Trainer Name?" [(ngModel)]="itemz"></ion-input>
+                <ion-input type="text" (ionInput)= "getItems($event)" placeholder="Find Trainer Here?" [(ngModel)]="itemz"></ion-input>
               </ion-item>
               <ion-item *ngIf = "isItemAvailable">
                   <ion-list style="width: 100%; max-height: 200px; overflow-y: scroll;">
@@ -62,27 +60,42 @@
               <ion-button fill="outline" expand="block" (click)="addEvent()" [disabled]="event.title == ''">Add Event</ion-button>
             </ion-card-content>
           </ion-card>
-          <ion-card *ngIf="dispScheduleCard">
-            <ion-card-header *ngIf="dispScheduleCard" tappable (click)="collapseCard = !collapseCard">
-              <ion-card-title *ngIf="dispScheduleCard">Taken Timeslots</ion-card-title>
+          <ion-card *ngIf="!adminUser">
+            <ion-card-header  tappable (click)="collapseCard = !collapseCard">
+              <ion-card-title >Taken Timeslots</ion-card-title>
             </ion-card-header>
-            <div *ngFor = "let day of serverDay; let i =index ">
-              <div *ngIf= "selectedDay == day">
-                <ion-item>
-                  {{startTimes[i]}}  -  {{endTimes[i]}}
-                </ion-item>
-
+            <div *ngIf="serverDay?.length > 0; else emptyList">            
+              <div *ngFor = "let day of serverDay; let i =index ">
+                <div *ngIf= "selectedDay == day">
+                  <ion-item>
+                    {{startTimes[i]}}  -  {{endTimes[i]}}
+                  </ion-item>
+                </div>
               </div>
             </div>
+            <ng-template #emptyList>
+              <ion-item>
+                <ion-text>
+                  <h5>Choose trainer and date to see currently booked times </h5>
+                </ion-text>
+              </ion-item>
+            </ng-template>
           </ion-card>
           <ion-card >
             <ion-card-header  tappable (click)="collapseInfoCard = !collapseInfoCard">
               <ion-card-title> + My Upcoming Events</ion-card-title>
             </ion-card-header>
                   <ion-card-content *ngIf="!collapseInfoCard">
-                    <ion-item *ngFor = "let events of userItem; let q = index">
-                        {{events}} {{userTrainer[q]}} {{userTimeStart[q]}} {{userTimeEnd[q]}}
-                    </ion-item>
+                    <div *ngIf = "adminUser; else verify">
+                      <ion-item *ngFor = "let events of clientTask; let q = index">
+                         {{clientName[q]}}-{{events}}- {{startTimes[q]}} - {{endTimes[q]}}
+                      </ion-item>
+                    </div>
+                    <ng-template #verify>
+                      <ion-item *ngFor = "let events of userItem; let q = index">
+                          {{events}} {{userTrainer[q]}} {{userTimeStart[q]}} - {{userTimeEnd[q]}}
+                      </ion-item>
+                    </ng-template>
                 </ion-card-content>          
           </ion-card>
       

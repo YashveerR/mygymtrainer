@@ -5,7 +5,7 @@ import * as firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/functions'
 import {AngularFirestore} from '@angular/fire/firestore'
-import { AlertController } from '@ionic/angular';
+import { AlertController} from '@ionic/angular';
 
 import {CrudService} from '../../shared/services/crud.service'
 import { sha256, sha224 } from 'js-sha256';
@@ -52,32 +52,49 @@ export class MydetailsPage implements OnInit {
       allowEditing: true,
       resultType: CameraResultType.DataUrl,
       source: CameraSource.Camera
+    }).catch((e) =>{
+      console.log("user cancelled image")
     });
-
-    this.photo = this.sanitizer.bypassSecurityTrustResourceUrl(image && (image.dataUrl));
-    this.photoChanged = true;
+    
+    if (image != undefined){
+      this.photo = this.sanitizer.bypassSecurityTrustResourceUrl(image && (image.dataUrl));
+      this.photoChanged = true;
+      this.crud.updateUserDetails({ recID: this.userdata["uid"], item: "photoURL", data: image }); //UST CHECK THIS
+    }
   }
 
  async read_user()
   {
   
-    
+    try {
     this.userdata = JSON.parse(localStorage.getItem('user'));
     console.log("USER DATDA",this.userdata);     
     
     console.log(sha256(this.userdata["uid"]));
 
     this.crud.readUserData(this.userdata["uid"]).subscribe(data =>{
-
-      var userNameSplit = data.data()['displayName'];
-      var splitted  = userNameSplit.split(" ", 2);      
-      this.user_name = splitted[0];
-      this.user_lastName = splitted[1];
-      this.photo = data.data()['photoURL'];
+      if (data.data()['displayName'] !== null){
+        var userNameSplit = data.data()['displayName'];
+        var splitted  = userNameSplit.split(" ", 2);      
+        this.user_name = splitted[0];
+        this.user_lastName = splitted[1];
+      }
+      if ((data.data()['photoURL'].dataUrl) == undefined) {
+        this.photo = (data.data()['photoURL']);
+      }
+      else{
+        this.photo = this.sanitizer.bypassSecurityTrustResourceUrl(data.data()['photoURL'] && (data.data()['photoURL'].dataUrl));    
+      }
       this.user_email = data.data()['email'];
-      this.userNumber = data.data()['phoneNumbers']
+      this.userNumber = data.data()['phoneNumber']
       this.verifiedTrainer = data.data()['verifiedTrainer'];
+      console.log("phot here:", this.photo, (data.data()['photoURL'].dataUrl));
       })
+    }
+    catch (Error)
+    {
+      console.log(Error.message);
+    }
 
   }
 
@@ -107,7 +124,7 @@ export class MydetailsPage implements OnInit {
     {
       //issue the CRUD to update the photo
       console.log("cloud and data do not match for photo");
-      this.crud.updateUserDetails({ recID: this.userdata["uid"], item: "photo", data: this.photo }); //JUST CHECK THIS
+      this.crud.updateUserDetails({ recID: this.userdata["uid"], item: "photoURL", data: this.photo }); //JUST CHECK THIS
     }
   }
 
@@ -140,7 +157,7 @@ export class MydetailsPage implements OnInit {
         {
           name: 'name1',
           type: 'text',
-          placeholder: 'Placeholder 1'
+          placeholder: 'Secret Key'
         }
       ],
       buttons: [

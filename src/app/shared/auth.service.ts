@@ -6,6 +6,7 @@ import { AngularFireAuth } from "@angular/fire/auth";
 import { AngularFirestore, AngularFirestoreDocument } from '@angular/fire/firestore';
 import * as firebase from 'firebase/app';
 
+
 @Injectable({
   providedIn: 'root'
 })
@@ -39,8 +40,7 @@ export class AuthService {
       .then((result) => {
         this.ngZone.run(() => {
           this.router.navigate(['/home/schedule']);
-        });
-        this.SetUserData(result.user);
+        });        
       }).catch((error) => {
         window.alert(error.message)
       })
@@ -54,6 +54,8 @@ export class AuthService {
           up and returns promise */
           this.SendVerificationMail();
           this.SetUserData(result.user);
+          window.alert('Account verification email sent, check your inbox.');
+          this.router.navigate(['login']);
         }).catch((error) => {
           window.alert(error.message)
         })
@@ -71,6 +73,7 @@ export class AuthService {
       return this.afAuth.sendPasswordResetEmail(passwordResetEmail)
       .then(() => {
         window.alert('Password reset email sent, check your inbox.');
+        this.router.navigate(['login']);
       }).catch((error) => {
         window.alert(error)
       })
@@ -120,13 +123,29 @@ export class AuthService {
         merge: true
       })
     }
-
+  
       // Sign out 
   SignOut() {
     return this.afAuth.signOut().then(() => {
       localStorage.removeItem('user');
       this.router.navigate(['login']);
+      
+    }).catch(function(error){
+      console.log("error loggin out", error)
     })
+  }
+
+  checkUserLoggedIn(){
+    return new Promise((resolve, reject) => {
+      firebase.auth().onAuthStateChanged((user: firebase.User) => {
+        if (user) {
+          console.log(user.uid);
+          resolve(user.uid);
+        } else {
+          resolve(false);
+        }
+      });
+    });
   }
 
 }

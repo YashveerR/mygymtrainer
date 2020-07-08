@@ -18,6 +18,7 @@ export class CrudService {
 
   createAppointment(trainerId, data)
   {
+    console.log("attempting to create an appointment", trainerId,data)
     this.firestore.collection('trainer').doc(trainerId).collection('trainerSchedule').add(data);    
   }
 
@@ -38,19 +39,14 @@ export class CrudService {
 
   readTrainerSchedule(trainerId)
   {
-    var datumObject = new Date();
     return this.firestore.collection('trainer').doc(trainerId).collection('trainerSchedule', ref =>
-    ref.where('startTime', '>', datumObject ).orderBy('startTime')).get();
+    ref.where('startTime', '>', this.dateCalc() ).orderBy('startTime')).get();
   }
 
   readUserSchedule(userId) 
-  {
-    var datum = Math.floor(Date.now() / 1000);
-    var datumObject = new Date();
-    console.log(datum, datumObject);
-    
+  {    
     return this.firestore.collection('userSchedule').doc('Yashveer Ramparsad').collection('userSched', ref =>
-      ref.where('startTime', '>', datumObject).orderBy('startTime')).get();       
+      ref.where('startTime', '>', this.dateCalc()).orderBy('startTime')).get();       
       
   }
 
@@ -83,7 +79,7 @@ export class CrudService {
         });
         break;
       }
-      case "photo":{
+      case "photoURL":{
         this.firestore.collection('users').doc(recID).update({
           photoURL: data
         })
@@ -93,4 +89,15 @@ export class CrudService {
     }
 
   }
+
+  dateCalc() {
+
+    var getDays = new Date().getDate();
+    var getYr = new Date().getFullYear();
+    var getMonth = new Date().getMonth();
+    var datum = new Date(getYr, (getMonth), (getDays));
+
+    return datum;
+  } 
+
 }
